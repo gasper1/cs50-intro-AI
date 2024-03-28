@@ -162,7 +162,7 @@ def person_id_for_name(name):
 def neighbors_for_person(person_id):
     """
     Returns (movie_id, person_id) pairs for people
-    who starred with a given person.
+    who starred with a given person.  
     """
     movie_ids = people[person_id]["movies"]
     neighbors = set()
