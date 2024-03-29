@@ -101,7 +101,8 @@ def terminal(board):
     Returns True if game is over, False otherwise.
     """
     how_many_None = sum([int(cell is None) for row in board for cell in row])
-    return how_many_None == 0
+    if how_many_None == 0 or winner(board) is not None:
+        return True
 
 
 def utility(board):
