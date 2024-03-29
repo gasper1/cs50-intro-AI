@@ -45,6 +45,8 @@ def result(board, action):
     Returns the board that results from making move (i, j) on the board.
     """
     board_copy = copy.deepcopy(board)
+    if max(action)>2 and min(action)<0:
+        raise ValueError
     if board_copy[action[0]][action[1]] is not None:
         raise ValueError
     if action is not None:
@@ -103,6 +105,7 @@ def terminal(board):
     how_many_None = sum([int(cell is None) for row in board for cell in row])
     if how_many_None == 0 or winner(board) is not None:
         return True
+    return False
 
 
 def utility(board):
