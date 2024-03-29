@@ -47,7 +47,7 @@ def result(board, action):
     if board_copy[action[0]][action[1]] is not None:
         raise ValueError
     if action is not None:
-        if max(action) > 2 and min(action) < 0:
+        if max(action) > 2 or min(action) < 0:
             raise ValueError
         board_copy[action[0]][action[1]] = player(board_copy)
     return board_copy
