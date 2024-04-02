@@ -1,4 +1,5 @@
 from logic import *
+import copy
 
 AKnight = Symbol("A is a Knight")
 AKnave = Symbol("A is a Knave")
@@ -16,7 +17,7 @@ statement_symbols = []
 # Baseline knowledge
 knowledge = And()
 
-for p_talking in people:
+for p_talking in people[0]:
     PKnight = Symbol(f"{p_talking} is a Knight")
     PKnave = Symbol(f"{p_talking} is a Knave")
     # Map in the knowledge that each person can be either Knight or Knave (exclusive or)
@@ -28,7 +29,7 @@ for p_talking in people:
         PsaysOKnave = Symbol(f'{p_talking}says{p_object}Knave')
         OKnight = Symbol(f"{p_object} is a Knight")
         OKnave = Symbol(f"{p_object} is a Knave")
-        rule0 = Not(And(AKnight,Symbol('AsaysAKnave')))
+        rule0 = Not(And(PKnight, PsaysOKnave))
         rule1 = Implication(And(PKnight, PsaysOKnight), OKnight)
         rule2 = Implication(And(PKnave, PsaysOKnight), OKnave)
         knowledge.add(rule0)
@@ -40,52 +41,68 @@ for p_talking in people:
             knowledge.add(rule3)
             knowledge.add(rule4)
 
-
-#
-# knowledge.add(Or(AKnight, AKnave))
-# knowledge.add(Not(And(AKnight, AKnave)))
-#
-# knowledge.add(Or(BKnight, BKnave))
-# knowledge.add(Not(And(BKnight, BKnave)))
-#
-# knowledge.add(Or(CKnight, CKnave))
-# knowledge.add(Not(And(CKnight, CKnave)))
-
-
-
-
 # Puzzle 0
 # A says "I am both a knight and a knave."
-knowledge0 = knowledge
+knowledge0 = copy.deepcopy(knowledge)
 knowledge0.add(Symbol('AsaysAKnight'))
 knowledge0.add(Symbol('AsaysAKnave'))
-knowledge0.add(Implication(And(AKnight, Symbol('AsaysAKnight')), AKnight))
-knowledge0.add(Implication(And(AKnave, Symbol('AsaysAKnight')), AKnave))
-knowledge0.add(Not(And(AKnight,Symbol('AsaysAKnave'))))
-
-#knowledge0.add(Not(And(AKnave,Symbol('AsaysAKnave'))))
 
 # Puzzle 1
 # A says "We are both knaves."
 # B says nothing.
-knowledge1 = And(
-    # TODO
-)
+knowledge1 = copy.deepcopy(knowledge)
+knowledge1.add(Symbol('AsaysAKnave'))
+knowledge1.add(Symbol('AsaysBKnave'))
 
 # Puzzle 2
 # A says "We are the same kind."
 # B says "We are of different kinds."
-knowledge2 = And(
-    # TODO
-)
+knowledge2 = copy.deepcopy(knowledge)
+AsaysAlikeB = Symbol('AsaysAlikeB')
+BsaysAdiffersB = Symbol('BsaysAdiffersB')
+knowledge2.add(AsaysAlikeB)
+knowledge2.add(BsaysAdiffersB)
+knowledge2.add(Implication(And(AKnight, AsaysAlikeB), BKnight))
+knowledge2.add(Implication(And(AKnave, AsaysAlikeB), BKnight))
+knowledge2.add(Implication(And(BKnight, BsaysAdiffersB), AKnave))
+knowledge2.add(Implication(And(BKnave, BsaysAdiffersB), AKnave))
 
 # Puzzle 3
 # A says either "I am a knight." or "I am a knave.", but you don't know which.
 # B says "A said 'I am a knave'."
 # B says "C is a knave."
 # C says "A is a knight."
+
+AsaysAKnight = Symbol('AsaysAKnight')
+AsaysAKnave = Symbol('AsaysAKnave')
+BsaysAsaysAKnight = Symbol('BsaysAsaysAKnight')
+BsaysCKnave = Symbol('BsaysCKnave')
+CsaysAKnight = Symbol('CsaysAKnight')
 knowledge3 = And(
-    # TODO
+
+    Or(AKnight, AKnave),
+    Not(And(AKnight, AKnave)),
+    Or(BKnight, BKnave),
+    Not(And(BKnight, BKnave)),
+    Or(CKnight, CKnave),
+    Not(And(CKnight, CKnave)),
+
+    Not(And(AKnight, AsaysAKnave)),
+
+    Or(AsaysAKnight, AsaysAKnave),
+    BsaysAsaysAKnight,
+    BsaysCKnave,
+    CsaysAKnight,
+
+    Implication(And(BKnight, BsaysAsaysAKnight), AsaysAKnight),
+    Implication(And(BKnave, BsaysAsaysAKnight), Not(AsaysAKnight)),
+    Implication(And(AKnight, AsaysAKnight), AKnight),
+    Implication(And(AKnave, AsaysAKnight), AKnave),
+    Implication(And(BKnight, BsaysCKnave), CKnave),
+    Implication(And(BKnave, BsaysCKnave), CKnight),
+    Implication(And(CKnight, CsaysAKnight), AKnight),
+    Implication(And(CKnave, CsaysAKnight), AKnave),
+
 )
 
 
