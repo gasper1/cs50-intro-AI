@@ -78,8 +78,11 @@ AsaysAKnave = Symbol('AsaysAKnave')
 BsaysAsaysAKnight = Symbol('BsaysAsaysAKnight')
 BsaysCKnave = Symbol('BsaysCKnave')
 CsaysAKnight = Symbol('CsaysAKnight')
+
 knowledge3 = And(
 
+    # knowledge3 not generalized. Rules written specifically for this problem.
+    # Rules of the game - as in generalization for-loop above
     Or(AKnight, AKnave),
     Not(And(AKnight, AKnave)),
     Or(BKnight, BKnave),
@@ -87,13 +90,16 @@ knowledge3 = And(
     Or(CKnight, CKnave),
     Not(And(CKnight, CKnave)),
 
+    # Constraint on statement (could be extended also to B and C, but not relevant for puzzle 3)
     Not(And(AKnight, AsaysAKnave)),
 
+    # Puzzle 3 statements
     Or(AsaysAKnight, AsaysAKnave),
     BsaysAsaysAKnight,
     BsaysCKnave,
     CsaysAKnight,
 
+    # Implication of statements
     Implication(And(BKnight, BsaysAsaysAKnight), AsaysAKnight),
     Implication(And(BKnave, BsaysAsaysAKnight), Not(AsaysAKnight)),
     Implication(And(AKnight, AsaysAKnight), AKnight),
