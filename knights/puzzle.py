@@ -75,7 +75,7 @@ knowledge2.add(Implication(And(BKnave, BsaysAdiffersB), AKnave))
 
 AsaysAKnight = Symbol('AsaysAKnight')
 AsaysAKnave = Symbol('AsaysAKnave')
-BsaysAsaysAKnight = Symbol('BsaysAsaysAKnight')
+BsaysAsaysAKnave = Symbol('BsaysAsaysAKnave')
 BsaysCKnave = Symbol('BsaysCKnave')
 CsaysAKnight = Symbol('CsaysAKnight')
 
@@ -92,16 +92,17 @@ knowledge3 = And(
 
     # Constraint on statement (could be extended also to B and C, but not relevant for puzzle 3)
     Not(And(AKnight, AsaysAKnave)),
+    Not(And(AKnave, AsaysAKnave)),
 
     # Puzzle 3 statements
     Or(AsaysAKnight, AsaysAKnave),
-    BsaysAsaysAKnight,
+    BsaysAsaysAKnave,
     BsaysCKnave,
     CsaysAKnight,
 
     # Implication of statements
-    Implication(And(BKnight, BsaysAsaysAKnight), AsaysAKnight),
-    Implication(And(BKnave, BsaysAsaysAKnight), Not(AsaysAKnight)),
+    Implication(And(BKnight, BsaysAsaysAKnave), AsaysAKnave),
+    Implication(And(BKnave, BsaysAsaysAKnave), Not(AsaysAKnave)),
     Implication(And(AKnight, AsaysAKnight), AKnight),
     Implication(And(AKnave, AsaysAKnight), AKnave),
     Implication(And(BKnight, BsaysCKnave), CKnave),
