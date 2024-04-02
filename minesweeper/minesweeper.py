@@ -155,6 +155,9 @@ class MinesweeperAI():
         # List of sentences about the game known to be true
         self.knowledge = []
 
+        # All possible cells in the board
+        self.board_available_cells = {(i,j) for i in range(0, height) for j in range(0, width)}
+
     def mark_mine(self, cell):
         """
         Marks a cell as a mine, and updates all knowledge
@@ -219,9 +222,11 @@ class MinesweeperAI():
 
         # review sequences combination to see if there's additional inferences
         for sentence1 in self.knowledge:
-            unknown_set1, count1 = sentence1.cells - sentence1.known_safes() - sentence1.known_mines(), sentence1.count - len(sentence1.known_mines())
+            unknown_set1 = sentence1.cells - sentence1.known_safes() - sentence1.known_mines()
+            count1 = sentence1.count - len(sentence1.known_mines())
             for sentence2 in self.knowledge:
-                unknown_set2, count2 = sentence2.cells - sentence2.known_safes() - sentence2.known_mines(), sentence2.count - len(sentence2.known_mines())
+                unknown_set2 = sentence2.cells - sentence2.known_safes() - sentence2.known_mines()
+                count2 = sentence2.count - len(sentence2.known_mines())
                 # if subset -> difference cells have difference count
                 if unknown_set1 < unknown_set2 and len(unknown_set1) > 0:
                     inferred_set = unknown_set2 - unknown_set1
@@ -243,6 +248,7 @@ class MinesweeperAI():
                         for cell in unknown_set:
                             self.mark_safe(cell)
                         all_conclusions_checked = False
+        return
 
 
 
@@ -256,8 +262,10 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        # TODO check history and safes
-        raise NotImplementedError
+        safe_possible_moves = self.safes - self.moves_made
+        if len(safe_possible_moves):
+            return safe_possible_moves.pop()
+        return None
 
     def make_random_move(self):
         """
@@ -266,4 +274,8 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        raise NotImplementedError
+        possible_moves = self.board_available_cells - self.mines - self.moves_made
+        if len(possible_moves):
+            return possible_moves.pop()
+        return None
+
