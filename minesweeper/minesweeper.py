@@ -216,29 +216,35 @@ class MinesweeperAI():
                 if reviewed_cell != cell:
                     cells.append(reviewed_cell)
         sentence = Sentence(cells, count)
-        print(f'Sentence: {sentence}')
+        print(f'Move: {cell} - Sentence: {sentence}')
         #TODO sentence mark fully safe if count 0
         self.knowledge.append(sentence)
 
         # review sequences combination to see if there's additional inferences
-        for sentence1 in self.knowledge:
+        for idx1, sentence1 in enumerate(self.knowledge):
             unknown_set1 = sentence1.cells - sentence1.known_safes() - sentence1.known_mines()
             count1 = sentence1.count - len(sentence1.known_mines())
-            for sentence2 in self.knowledge:
+            # print(f';;;; {idx1} - {sentence.cells} - Unknown: {unknown_set1}, {count1}')
+            for idx2, sentence2 in enumerate(self.knowledge):
                 unknown_set2 = sentence2.cells - sentence2.known_safes() - sentence2.known_mines()
                 count2 = sentence2.count - len(sentence2.known_mines())
+                print(f'.... {idx2} - {sentence.cells} - Unknown: {unknown_set2}, {count2}')
                 # if subset -> difference cells have difference count
                 if unknown_set1 < unknown_set2 and len(unknown_set1) > 0:
                     inferred_set = unknown_set2 - unknown_set1
                     count_difference = count2 - count1
-                    self.knowledge.append(Sentence(inferred_set, count_difference))
+                    knowledge_bit = Sentence(inferred_set, count_difference)
+                    if knowledge_bit not in self.knowledge:
+                        self.knowledge.append(knowledge_bit)
 
         # review if newly marked mines / safes allow to draw additional conclusions on the content of the remaining cells in the sequences
         all_conclusions_checked = False
         while not all_conclusions_checked:
             all_conclusions_checked = True
-            for sentence in self.knowledge:
-                unknown_set, unknown_mines_count = sentence.cells - sentence.known_safes() - sentence.known_mines(), sentence.count - len(sentence.known_mines())
+            for idx, sentence in enumerate(self.knowledge):
+                unknown_set = sentence.cells - sentence.known_safes() - sentence.known_mines()
+                unknown_mines_count = sentence.count - len(sentence.known_mines())
+                # print(f'**** {idx} - {sentence.cells} - Unknown: {unknown_set}, {unknown_mines_count}')
                 if len(unknown_set) > 0:
                     if len(unknown_set) == unknown_mines_count:
                         for cell in unknown_set:
@@ -263,6 +269,7 @@ class MinesweeperAI():
         and self.moves_made, but should not modify any of those values.
         """
         safe_possible_moves = self.safes - self.moves_made
+        print(f'Safe options: {safe_possible_moves}')
         if len(safe_possible_moves):
             return safe_possible_moves.pop()
         return None

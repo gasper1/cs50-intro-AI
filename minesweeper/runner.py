@@ -213,6 +213,7 @@ while True:
     # Make move and update AI knowledge
     if move:
         if game.is_mine(move):
+            print(f'Losing move: {move}')
             lost = True
         else:
             nearby = game.nearby_mines(move)
