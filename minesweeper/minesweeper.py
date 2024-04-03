@@ -133,6 +133,8 @@ class Sentence():
         """
         if cell in self.cells:
             self.mines.add(cell)
+            self.cells.remove(cell)
+            self.count -= 1
 
     def mark_safe(self, cell):
         """
@@ -141,6 +143,7 @@ class Sentence():
         """
         if cell in self.cells:
             self.safes.add(cell)
+            self.cells.remove(cell)
 
 
 
@@ -176,12 +179,12 @@ class MinesweeperAI():
         self.mines.add(cell)
         for sentence in self.knowledge:
             sentence.mark_mine(cell)
-            # check if you piece of knowledge (MINE cell) grants new inferences on sentence content
-            unknown_sentence_cells = sentence.cells - sentence.known_mines()
-            if sentence.count == sentence.known_mines():
+            # check if new piece of knowledge (MINE cell) grants new inferences on sentence content
+            unknown_sentence_cells = sentence.cells.copy()
+            if sentence.count == 0:
                 # all remaining cells are SAFES and thus needs to be marked so
                 for n_mine in unknown_sentence_cells:
-                    self.mark_mine(n_mine)
+                    self.mark_safe(n_mine)
 
     def mark_safe(self, cell):
         """
@@ -191,8 +194,8 @@ class MinesweeperAI():
         self.safes.add(cell)
         for sentence in self.knowledge:
             sentence.mark_safe(cell)
-            # check if you piece of knowledge (SAFE cell) grants new inferences on sentence content
-            unknown_sentence_cells = sentence.cells - sentence.known_safes()
+            # check if new piece of knowledge (SAFE cell) grants new inferences on sentence content
+            unknown_sentence_cells = sentence.cells.copy()
             if sentence.count == len(unknown_sentence_cells):
                 # all remaining cells are MINES and thus needs to be marked so
                 for n_mine in unknown_sentence_cells:
@@ -249,6 +252,10 @@ class MinesweeperAI():
                if they can be inferred from existing knowledge
         """
 
+        print(f'********* Move: {cell}')
+        print(f'********* Safes: {self.safes}')
+        print(f'********* Mines: {self.mines}')
+        print(f'********* Mades: {self.moves_made}')
         # if move already made or a mine, then nothing to be done
         if cell in self.moves_made:
             return
