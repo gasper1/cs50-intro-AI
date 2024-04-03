@@ -166,6 +166,12 @@ class MinesweeperAI():
         self.mines.add(cell)
         for sentence in self.knowledge:
             sentence.mark_mine(cell)
+            # check if you piece of knowledge (MINE cell) grants new inferences on sentence content
+            unknown_sentence_cells = sentence.cells - sentence.known_mines()
+            if sentence.count == sentence.known_mines():
+                # all remaining cells are SAFES and thus needs to be marked so
+                for n_mine in unknown_sentence_cells:
+                    self.mark_mine(n_mine)
 
     def mark_safe(self, cell):
         """
@@ -175,6 +181,12 @@ class MinesweeperAI():
         self.safes.add(cell)
         for sentence in self.knowledge:
             sentence.mark_safe(cell)
+            # check if you piece of knowledge (SAFE cell) grants new inferences on sentence content
+            unknown_sentence_cells = sentence.cells - sentence.known_safes()
+            if sentence.count == len(unknown_sentence_cells):
+                # all remaining cells are MINES and thus needs to be marked so
+                for n_mine in unknown_sentence_cells:
+                    self.mark_mine(n_mine)
 
     def shape_sentence_from(self, cell, count):
 
@@ -192,6 +204,7 @@ class MinesweeperAI():
 
                 # check if tentative nearby cell is in bounds
                 if 0 <= surr_i < self.height and 0 <= surr_j < self.width:
+                    # NOTE: self.mines/safes are ALL mines/safes so far (from AI and NOT from SENTENCE)
                     not_a_mine = nearby_cell not in self.mines
                     not_a_safe = nearby_cell not in self.safes
 
@@ -219,43 +232,6 @@ class MinesweeperAI():
 
         print(f'.... Move: {cell} - New sentence: {new_sentence} - New safes: {new_sentence.known_safes()} - New mines: {new_sentence.known_mines()}')
         return new_sentence, new_sentence.known_safes(), new_sentence.known_mines()
-
-    def knowledge_due_diligence(self, sentence)
-    # TODO - clean and rewrite this function
-        # review sequences combination to see if there's additional inferences
-        for idx1, sentence1 in enumerate(self.knowledge):
-            unknown_set1 = sentence1.cells - sentence1.known_safes() - sentence1.known_mines()
-            count1 = sentence1.count - len(sentence1.known_mines())
-            # print(f';;;; {idx1} - {sentence.cells} - Unknown: {unknown_set1}, {count1}')
-            for idx2, sentence2 in enumerate(self.knowledge):
-                unknown_set2 = sentence2.cells - sentence2.known_safes() - sentence2.known_mines()
-                count2 = sentence2.count - len(sentence2.known_mines())
-                # print(f'.... {idx2} - {sentence.cells} - Unknown: {unknown_set2}, {count2}')
-                # if subset -> difference cells have difference count
-                if unknown_set1 < unknown_set2 and len(unknown_set1) > 0:
-                    inferred_set = unknown_set2 - unknown_set1
-                    count_difference = count2 - count1
-                    knowledge_bit = Sentence(inferred_set, count_difference)
-                    if knowledge_bit not in self.knowledge:
-                        self.knowledge.append(knowledge_bit)
-
-        # review if newly marked mines / safes allow to draw additional conclusions on the content of the remaining cells in the sequences
-        all_conclusions_checked = False
-        while not all_conclusions_checked:
-            all_conclusions_checked = True
-            for idx, sentence in enumerate(self.knowledge):
-                unknown_set = sentence.cells - sentence.known_safes() - sentence.known_mines()
-                unknown_mines_count = sentence.count - len(sentence.known_mines())
-                # print(f'**** {idx} - {sentence.cells} - Unknown: {unknown_set}, {unknown_mines_count}')
-                if len(unknown_set) > 0:
-                    if len(unknown_set) == unknown_mines_count:
-                        for cell in unknown_set:
-                            self.mark_mine(cell)
-                        all_conclusions_checked = False
-                    elif unknown_mines_count == 0:
-                        for cell in unknown_set:
-                            self.mark_safe(cell)
-                        all_conclusions_checked = False
 
     def add_knowledge(self, cell, count):
         """
@@ -289,11 +265,10 @@ class MinesweeperAI():
 
         # update knowledge base (knowledge, safes, mines) based on new_sentence
         self.knowledge.append(new_sentence)
-        self.safes = self.safes | new_safes
-        self.mines = self.mines | new_mines
-
-        # find conclusions from new knowledge base
-        # self.knowledge_due_diligence(new_sentence)
+        for n_safe in new_safes:
+            self.mark_safe(n_safe)
+        for n_mine in new_mines:
+            self.mark_mine(n_mine)
 
         print(f'.... KSafe - {self.safes}')
         print(f'.... KMine - {self.mines}')
