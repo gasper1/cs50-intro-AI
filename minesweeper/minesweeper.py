@@ -108,12 +108,22 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
+        unknown_remaining_cells = self.cells - self.safes - self.mines
+        if self.count == len(unknown_remaining_cells):
+            # mark all sentence's cells as MINES
+            for n_cell in unknown_remaining_cells:
+                self.mines.add(n_cell)
         return self.mines
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
+        unknown_remaining_cells = self.cells - self.safes - self.mines
+        if len(unknown_remaining_cells) > 0 and self.count == 0:
+            # mark all sentence's cells as SAFES
+            for n_cell in unknown_remaining_cells:
+                self.safes.add(n_cell)
         return self.safes
 
     def mark_mine(self, cell):
@@ -219,16 +229,6 @@ class MinesweeperAI():
 
         # create new sentence for filtered SO FAR UNKNOWN cells
         new_sentence = Sentence(unknown_nearby_cells, count)
-
-        # check if any conclusion can be made on the current sentence (i.e., if all are safes or all are mines)
-        if count == 0:
-            # mark all sentence's cells as safe
-            for n_cell in unknown_nearby_cells:
-                new_sentence.mark_safe(n_cell)
-        elif count == len(unknown_nearby_cells):
-            # mark all sentence's cells as safe
-            for n_cell in unknown_nearby_cells:
-                new_sentence.mark_mine(n_cell)
 
         print(f'.... Move: {cell} - New sentence: {new_sentence} - New safes: {new_sentence.known_safes()} - New mines: {new_sentence.known_mines()}')
         return new_sentence, new_sentence.known_safes(), new_sentence.known_mines()
