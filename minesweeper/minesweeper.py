@@ -176,50 +176,52 @@ class MinesweeperAI():
         for sentence in self.knowledge:
             sentence.mark_safe(cell)
 
-    def add_knowledge(self, cell, count):
-        """
-        Called when the Minesweeper board tells us, for a given
-        safe cell, how many neighboring cells have mines in them.
+    def shape_sentence_from(self, cell, count):
 
-        This function should:
-            1) mark the cell as a move that has been made
-            2) mark the cell as safe
-            3) add a new sentence to the AI's knowledge base
-               based on the value of `cell` and `count`
-            4) mark any additional cells as safe or as mines
-               if it can be concluded based on the AI's knowledge base
-            5) add any new sentences to the AI's knowledge base
-               if they can be inferred from existing knowledge
-        """
-        if cell in self.moves_made:
-            return
-
-        # add move to history and mark it as safe
-        self.moves_made.add(cell)
-        self.mark_safe(cell)
-
-        # create a sentence out of relevant surrounding cells and add that to the knoweldge base
+        # set cell coordinates in the board and list for sorrounding cells
         i, j = cell
-        cells = []
-        for row_step in [-1,0,1]:
-            if i + row_step < 0 or i + row_step > self.height - 1:
-                continue
-            for col_step in [-1,0,1]:
-                if j + col_step < 0 or j + col_step > self.width - 1:
-                    continue
-                reviewed_cell = i + row_step, j + col_step
-                if reviewed_cell in self.safes:
-                    continue
-                if reviewed_cell in self.mines:
-                    # count -= 1
-                    continue
-                if reviewed_cell != cell:
-                    cells.append(reviewed_cell)
-        sentence = Sentence(cells, count)
-        print(f'Move: {cell} - Sentence: {sentence}')
-        #TODO sentence mark fully safe if count 0
-        self.knowledge.append(sentence)
+        unknown_nearby_cells = []
 
+        # loop through possible steps combination that result in the (maximum) 8 sorrounding cells
+        for row_step in [-1, 0, 1]:
+            for col_step in [-1, 0, 1]:
+
+                # nearby cell coordinates
+                surr_i, surr_j = i + row_step, j + col_step
+                nearby_cell = surr_i, surr_j
+
+                # check if tentative nearby cell is in bounds
+                if 0 <= surr_i < self.height and 0 <= surr_j < self.width:
+                    not_a_mine = nearby_cell not in self.mines
+                    not_a_safe = nearby_cell not in self.safes
+
+                    # add only UNKNOWN cells (not mines, not safes) to new sentence
+                    if not_a_mine and not_a_safe and nearby_cell != cell:
+                        unknown_nearby_cells.append(nearby_cell)
+
+                    # if we KNOW to have a mine nearby, the cell is excluded but the mine counts reduced for
+                    # the remaining sentence
+                    elif nearby_cell in self.mines:
+                        count -= 1
+
+        # create new sentence for filtered SO FAR UNKNOWN cells
+        new_sentence = Sentence(unknown_nearby_cells, count)
+
+        # check if any conclusion can be made on the current sentence (i.e., if all are safes or all are mines)
+        if count == 0:
+            # mark all sentence's cells as safe
+            for n_cell in unknown_nearby_cells:
+                new_sentence.mark_safe(n_cell)
+        elif count == len(unknown_nearby_cells):
+            # mark all sentence's cells as safe
+            for n_cell in unknown_nearby_cells:
+                new_sentence.mark_mine(n_cell)
+
+        print(f'.... Move: {cell} - New sentence: {new_sentence} - New safes: {new_sentence.known_safes()} - New mines: {new_sentence.known_mines()}')
+        return new_sentence, new_sentence.known_safes(), new_sentence.known_mines()
+
+    def knowledge_due_diligence(self, sentence)
+    # TODO - clean and rewrite this function
         # review sequences combination to see if there's additional inferences
         for idx1, sentence1 in enumerate(self.knowledge):
             unknown_set1 = sentence1.cells - sentence1.known_safes() - sentence1.known_mines()
@@ -228,7 +230,7 @@ class MinesweeperAI():
             for idx2, sentence2 in enumerate(self.knowledge):
                 unknown_set2 = sentence2.cells - sentence2.known_safes() - sentence2.known_mines()
                 count2 = sentence2.count - len(sentence2.known_mines())
-                print(f'.... {idx2} - {sentence.cells} - Unknown: {unknown_set2}, {count2}')
+                # print(f'.... {idx2} - {sentence.cells} - Unknown: {unknown_set2}, {count2}')
                 # if subset -> difference cells have difference count
                 if unknown_set1 < unknown_set2 and len(unknown_set1) > 0:
                     inferred_set = unknown_set2 - unknown_set1
@@ -254,9 +256,49 @@ class MinesweeperAI():
                         for cell in unknown_set:
                             self.mark_safe(cell)
                         all_conclusions_checked = False
+
+    def add_knowledge(self, cell, count):
+        """
+        Called when the Minesweeper board tells us, for a given
+        safe cell, how many neighboring cells have mines in them.
+
+        This function should:
+            1) mark the cell as a move that has been made
+            2) mark the cell as safe
+            3) add a new sentence to the AI's knowledge base
+               based on the value of `cell` and `count`
+            4) mark any additional cells as safe or as mines
+               if it can be concluded based on the AI's knowledge base
+            5) add any new sentences to the AI's knowledge base
+               if they can be inferred from existing knowledge
+        """
+
+        # if move already made or a mine, then nothing to be done
+        if cell in self.moves_made:
+            return
+
+        if cell in self.mines:
+            return
+
+        # otherwise add move to history and mark it as safe
+        self.moves_made.add(cell)
+        self.mark_safe(cell)
+
+        # create a sentence out of relevant surrounding cells with due checks
+        new_sentence, new_safes, new_mines = self.shape_sentence_from(cell, count)
+
+        # update knowledge base (knowledge, safes, mines) based on new_sentence
+        self.knowledge.append(new_sentence)
+        self.safes = self.safes | new_safes
+        self.mines = self.mines | new_mines
+
+        # find conclusions from new knowledge base
+        # self.knowledge_due_diligence(new_sentence)
+
+        print(f'.... KSafe - {self.safes}')
+        print(f'.... KMine - {self.mines}')
+
         return
-
-
 
 
     def make_safe_move(self):
