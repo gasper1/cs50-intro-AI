@@ -114,6 +114,7 @@ def iterate_pagerank(corpus, damping_factor):
     PageRank values should sum to 1.
     """
 
+    # Initialize corpus of incoming links - dictionary lists incoming linking pages to each page
     pages_linking_to = dict()
     for page in corpus:
         pages_linking_to[page] = set()
@@ -121,10 +122,11 @@ def iterate_pagerank(corpus, damping_factor):
             if page in corpus[linking_page]:
                 pages_linking_to[page].add(linking_page)
 
+    # Initialize baseline pagerank
     num_pages = len(corpus)
-
     pagerank = {pg: 1 / num_pages for pg in corpus}
 
+    # Iterate until any correction to the pageranks is marginal (< 0.001)
     is_marginal_correction = False
     while not is_marginal_correction:
         is_marginal_correction = True
@@ -137,6 +139,8 @@ def iterate_pagerank(corpus, damping_factor):
                     pagerank[page] += damping_factor * pagerank[lp] / len(corpus[lp])
             is_marginal_correction = is_marginal_correction and ((pagerank[page] - previous_pagerank) < 0.001)
 
+    pagerank_sum = sum(pagerank.values())
+    pagerank = {key: value / pagerank_sum for key, value in pagerank}
     return pagerank
 
 
