@@ -1,4 +1,5 @@
 import os
+import pprint
 import random
 import re
 import sys
@@ -122,6 +123,9 @@ def iterate_pagerank(corpus, damping_factor):
             if page in corpus[linking_page]:
                 pages_linking_to[page].add(linking_page)
 
+    # print('Incoming links corpus:')
+    # pprint.pprint(pages_linking_to)
+
     # Initialize baseline pagerank
     num_pages = len(corpus)
     pagerank = {pg: 1 / num_pages for pg in corpus}
@@ -129,6 +133,7 @@ def iterate_pagerank(corpus, damping_factor):
     # Iterate until any correction to the pageranks is marginal (< 0.001)
     is_marginal_correction = False
     while not is_marginal_correction:
+        # pprint.pprint(pagerank)
         is_marginal_correction = True
         for page in corpus:
             previous_pagerank = pagerank[page]
@@ -137,10 +142,10 @@ def iterate_pagerank(corpus, damping_factor):
                 pagerank[page] = (1 - damping_factor) / num_pages
                 for lp in linking_pages:
                     pagerank[page] += damping_factor * pagerank[lp] / len(corpus[lp])
-            is_marginal_correction = is_marginal_correction and ((pagerank[page] - previous_pagerank) < 0.001)
+            is_marginal_correction = is_marginal_correction and (abs(pagerank[page] - previous_pagerank) < 0.001)
 
-    pagerank_sum = sum(pagerank.values())
-    pagerank = {key: value / pagerank_sum for key, value in pagerank.items()}
+    # pagerank_sum = sum(pagerank.values())
+    # pagerank = {key: value / pagerank_sum for key, value in pagerank.items()}
     return pagerank
 
 
