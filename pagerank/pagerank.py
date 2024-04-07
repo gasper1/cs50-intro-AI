@@ -151,8 +151,9 @@ def iterate_pagerank(corpus, damping_factor):
                 pagerank[page] += damping_factor * pagerank[lp] / len(corpus_copy[lp])
             is_marginal_correction = is_marginal_correction and (abs(pagerank[page] - previous_pagerank) < 0.001)
 
-    # pagerank_sum = sum(pagerank.values())
-    # pagerank = {key: value / pagerank_sum for key, value in pagerank.items()}
+    # Normalize to ensure sum of pagerank is 1
+    pagerank_sum = sum(pagerank.values())
+    pagerank = {key: value / pagerank_sum for key, value in pagerank.items()}
     return pagerank
 
 
