@@ -252,10 +252,11 @@ class MinesweeperAI():
                if they can be inferred from existing knowledge
         """
 
-        print(f'********* Move: {cell}')
-        print(f'********* Safes: {self.safes}')
-        print(f'********* Mines: {self.mines}')
-        print(f'********* Mades: {self.moves_made}')
+        # print(f'********* Move: {cell}')
+        # print(f'********* Safes: {self.safes}')
+        # print(f'********* Mines: {self.mines}')
+        # print(f'********* Mades: {self.moves_made}')
+
         # if move already made or a mine, then nothing to be done
         if cell in self.moves_made:
             return
