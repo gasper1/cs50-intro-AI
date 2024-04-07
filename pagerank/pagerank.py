@@ -117,31 +117,38 @@ def iterate_pagerank(corpus, damping_factor):
 
     # Initialize corpus of incoming links - dictionary lists incoming linking pages to each page
     pages_linking_to = dict()
+    corpus_copy = corpus.copy()
+    corpus_pages = {item for item in corpus}
+
     for page in corpus:
+        if len(corpus[page]) == 0:
+            corpus_copy[page] = corpus_pages
+
+    for page in corpus_copy:
         pages_linking_to[page] = set()
-        for linking_page in corpus:
-            if page in corpus[linking_page]:
+        for linking_page in corpus_copy:
+            if page in corpus_copy[linking_page]:
                 pages_linking_to[page].add(linking_page)
 
-    # print('Incoming links corpus:')
-    # pprint.pprint(pages_linking_to)
+    # print('Corpus copy:')
+    # pprint.pprint(corpus_copy)
+    # print()
 
     # Initialize baseline pagerank
-    num_pages = len(corpus)
-    pagerank = {pg: 1 / num_pages for pg in corpus}
+    num_pages = len(corpus_copy)
+    pagerank = {pg: 1 / num_pages for pg in corpus_copy}
 
     # Iterate until any correction to the pageranks is marginal (< 0.001)
     is_marginal_correction = False
     while not is_marginal_correction:
         # pprint.pprint(pagerank)
         is_marginal_correction = True
-        for page in corpus:
+        for page in corpus_copy:
             previous_pagerank = pagerank[page]
             linking_pages = pages_linking_to[page]
-            if len(linking_pages):
-                pagerank[page] = (1 - damping_factor) / num_pages
-                for lp in linking_pages:
-                    pagerank[page] += damping_factor * pagerank[lp] / len(corpus[lp])
+            pagerank[page] = (1 - damping_factor) / num_pages
+            for lp in linking_pages:
+                pagerank[page] += damping_factor * pagerank[lp] / len(corpus_copy[lp])
             is_marginal_correction = is_marginal_correction and (abs(pagerank[page] - previous_pagerank) < 0.001)
 
     # pagerank_sum = sum(pagerank.values())
