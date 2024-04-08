@@ -139,13 +139,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-
-    # Retrieve list of names in family
-    names = set(people)
-
-    # Retrieve complementary sets of people with no gene, no trait
-    no_gene = names - one_gene - two_genes
-    no_trait = names - have_trait
+    joint_prob = 1
 
     # Keep track of gene probabilities (based on specified input) in dictionary:
     person_probabilities = {
@@ -164,52 +158,54 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         person_probabilities[person]['has trait'] = True if person in have_trait else False
 
     # Iterate through all the people and calculate probability based on input info (one_gene, two_gene, have_trait)
-    for person, values in people:
-
-        # Calculate gene probability
-        if person_probabilities[person]['gene probability'] is not None:    # Already populated due to recursion
-            p_gene = person_probabilities[person]['gene probability']
-            p_trait = person_probabilities[person]['trait probability']
-        else:
-            p_gene, p_trait = person_genes_and_trait_probabilities(person, person_probabilities, people)
-
-        # Calculate trait probability, conditional to gene probability
+    for person, values in people.items():
+        # Calculate gene copies and trait probability (p_gene, p_trait),
+        # given parents gene copies knowledge (from one_gene/two_gene)
+        p_gene, p_trait = person_genes_and_trait_probabilities(person, person_probabilities, values)
+        joint_prob *= p_gene * p_trait
+        # print(f'{person} : {p_gene} * {p_trait} = {p_gene * p_trait}')
+    return joint_prob
 
 
-def person_genes_and_trait_probabilities(person, person_probabilities, people):
+
+def person_genes_and_trait_probabilities(person, person_probabilities, person_values):
     # Retrieve gene information for the person that we want to assess
     person_gene_copies = person_probabilities[person]['gene copies']
     person_has_trait = person_probabilities[person]['has trait']
-    person_values = people[person]
+    # person_values = people[person]
+
+    # Calculate gene inheritance probability, based on given gene copies of parents
+    # If no info on parents --> Unconditional gene probability based on given statistics
+    if person_values['father'] is None and person_values['mother'] is None:
+        p_gene = PROBS['gene'][person_gene_copies]
+    else:
+        father = person_values['father']
+        mother = person_values['mother']
+        father_genes = person_probabilities[father]['gene copies']
+        mother_genes = person_probabilities[mother]['gene copies']
+        p_gene = inheritance_probability(person_gene_copies, father_genes, mother_genes)
+    p_trait = PROBS['trait'][person_gene_copies][person_has_trait]
+    person_probabilities[person]['gene probability'] = p_gene
+    person_probabilities[person]['trait probability'] = p_trait
+    return p_gene, p_trait
+
+
+def inheritance_probability(person_genes, father_genes, mother_genes):
     prob_inheritance = {
         0: PROBS['mutation'],
         1: 0.5 * (1 - PROBS['mutation']),
         2: 1 - PROBS['mutation'],
     }
-
-    # Calculate gene probability, conditional to parents gene probability
-    # If no info on parents --> Unconditional gene probability based on given statistics
-    if person_values['father'] is None and person_values['Mother'] is None:
-        p_gene = PROBS['gene'][person_gene_copies]
-        person_probabilities[person]['gene probability'] = p_gene
-        p_trait = PROBS['trait'][person_gene_copies][person_has_trait]
-        person_probabilities[person]['trait probability'] = p_trait
-    else: # Otherwise recursively goes up the family tree
-        father = person_values['father']
-        mother = person_values['mother']
-        # TODO check on parents 0 copies scenario - consider only mutation, no recursion
-        p_gene_father, p_trait_father = person_genes_and_trait_probabilities(father, person_probabilities, people)
-        p_gene_mother, p_trait_mother = person_genes_and_trait_probabilities(mother, person_probabilities, people)
-        # Probability = M and Not(F) or F and Not(M)
-        father_genes = person_probabilities[father]['gene copies']
-        mother_genes = person_probabilities[mother]['gene copies']
-        p_inherit_father = prob_inheritance[father_genes]
-        p_inherit_mother = prob_inheritance[mother_genes]
+    p_inherit_father = prob_inheritance[father_genes]
+    p_inherit_mother = prob_inheritance[mother_genes]
+    if person_genes == 2:
+        p_gene = p_inherit_mother * p_inherit_father
+    elif person_genes == 1:
         p_gene = p_inherit_mother * (1 - p_inherit_father) + p_inherit_father * (1 - p_inherit_mother)
-        # p_trait = p_trait_mother * (1 - p_trait_father) + p_trait_father * (1 - p_trait_mother)
-    person_probabilities[person]['gene probability'] = p_gene
-    person_probabilities[person]['trait probability'] = p_trait
-    return p_gene, p_trait
+    else:
+        p_gene = (1 - p_inherit_mother) * (1 - p_inherit_father)
+    return p_gene
+
 
 def how_many_genes(person, one_gene, two_genes):
     gene_copies = 0
@@ -227,7 +223,11 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    for person in probabilities:
+        gene_copies = how_many_genes(person, one_gene, two_genes)
+        has_trait = True if person in have_trait else False
+        probabilities[person]['gene'][gene_copies] += p
+        probabilities[person]['trait'][has_trait] += p
 
 
 def normalize(probabilities):
@@ -235,7 +235,11 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    for person, value in probabilities.items():
+        sum_gene_distr = sum(value['gene'].values())
+        sum_trait_distr = sum(value['trait'].values())
+        value['gene'] = {k: v / sum_gene_distr for k, v in value['gene'].items()}
+        value['trait'] = {k: v / sum_trait_distr for k, v in value['trait'].items()}
 
 
 if __name__ == "__main__":
