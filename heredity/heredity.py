@@ -193,7 +193,7 @@ def person_genes_and_trait_probabilities(person, person_probabilities, person_va
 def inheritance_probability(person_genes, father_genes, mother_genes):
     prob_inheritance = {
         0: PROBS['mutation'],
-        1: 0.5 * (1 - PROBS['mutation']),
+        1: 0.5,
         2: 1 - PROBS['mutation'],
     }
     p_inherit_father = prob_inheritance[father_genes]
