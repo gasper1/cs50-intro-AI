@@ -167,7 +167,6 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     return joint_prob
 
 
-
 def person_genes_and_trait_probabilities(person, person_probabilities, person_values):
     # Retrieve gene information for the person that we want to assess
     person_gene_copies = person_probabilities[person]['gene copies']
