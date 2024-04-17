@@ -134,11 +134,14 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
-        reward = 0
+        reward = min(self.q.values()) - 1 if len(self.q) else -2
+        action = None
         for i, pile in enumerate(state):
             for j in range(1, pile + 1):
                 action = (i, j)
                 reward = max(reward, self.get_q_value(tuple(state), action))
+        if action is None:
+            return 0
         return reward
 
     def choose_action(self, state, epsilon=True):
@@ -158,7 +161,7 @@ class NimAI():
         """
         best = None
         actions = list()
-        best_reward = -10
+        best_reward = min(self.q.values()) - 1 if len(self.q) else -2
         for i, pile in enumerate(state):
             for j in range(1, pile + 1):
                 actions.append((i, j))
