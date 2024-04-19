@@ -69,10 +69,9 @@ def load_data(data_dir):
             image = cv2.imread(img_path)
             resized_image = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT), interpolation=cv2.INTER_LINEAR)
             images.append(resized_image)
+            labels.append(int(label))
             # print(img_file, ' size: ', resized_image.shape)
             # cv2.imshow('img' + label, resized_image)
-            break
-        labels.append(int(label))
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
     return images, labels
@@ -90,7 +89,7 @@ def get_model():
 
         # Convolutional layer. Learn 32 filters using a 3x3 kernel
         tf.keras.layers.Conv2D(
-            10, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+            6, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
         ),
 
         # Max-pooling layer, using 2x2 pool size

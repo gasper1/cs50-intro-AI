@@ -5,5 +5,13 @@ model 1:
     Dense 128
     Dropout 0.5
     Dense NUM_CATEGORIES
-    ==> Epoch 10 accuracy: 0.16, loss: 20.59
-    ==> Accuracy: 0, loss: 23.37
+    ==> Accuracy: 0.33, loss: 2.502
+
+model 2:
+    Conv2D - 10 filters, kernel: 3x3, relu
+    Pooling 2x2
+    Flatten
+    Dense 128
+    Dropout 0.5
+    Dense NUM_CATEGORIES
+    ==> Accuracy: 0.0552, loss: 3.5010
