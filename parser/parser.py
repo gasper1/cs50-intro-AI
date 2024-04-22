@@ -18,7 +18,7 @@ V -> "smiled" | "tell" | "were"
 # Previous grammar:  S -> NP VP | NP VP NP | NP VP PP | NP VP NP PP | NP V PP Adv | NP V Adv | S Conj S | S Conj VP NP
 # | S Conj VP NP PP | S Conj VP PP NP
 NONTERMINALS = """
-S -> NP VP | S NP | S PP | S Adv | S Conj S | S Conj VP NP | S Conj VP NP PP | S Conj VP PP NP
+S -> NP VP | NP PP VP | S NP | S PP | S Adv | S Conj S | S Conj VP NP | S Conj VP NP PP | S Conj VP PP NP
 VP -> V | Adv V
 NP -> N | Adj NP | Det NP
 PP -> P NP
